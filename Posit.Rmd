@@ -1,0 +1,62 @@
+---
+title: "非必要不核酸的数学逻辑"
+author: "王大宝"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: 
+    latex_engine: xelatex
+    number_sections: yes
+    df_print: kable
+linkcolor: red
+urlcolor: red
+header-includes:
+  - \usepackage{ctex}
+classoptions: "hyperref, 12pt, a4paper"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo         = TRUE,
+  message      = FALSE,
+  warning      = FALSE,
+  fig.align    = "center",
+  fig.show     = "hold",
+  fig.showtext = TRUE
+)
+```
+
+
+成都是有1千万人口的城市，如果社会平均感染率是10%
+
+```{r}
+library(tidyverse)
+
+d <- tibble(x = rbinom(n = 10000000, size = 1, prob = 0.1))
+```
+
+十人一管做混检，若这十人中有一个是阳性，那么其他人就**被阳性**了。
+```{r}
+draw_once <- function(d) {
+  d %>% 
+    slice_sample(n = 10) %>% 
+    summarise(
+      is_positive = any(x)
+    )
+}
+```
+
+
+
+现在假定社区大白采集到了5000管，我们被阳性的概率是
+```{r}
+res <- purrr::map_dfr(.x = 1:5000, .f = ~ draw_once(d))
+
+res %>% 
+  summarise(
+    prop = sum(is_positive) / 5000
+  )
+```
+
+
+如果社会平均感染率达到20%呢？核酸十混一阳性的概率接近90%. 因此，除非做单管，非必要不做核酸。**大家带好口罩、拼刺刀吧。**
